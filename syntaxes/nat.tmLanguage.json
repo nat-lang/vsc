@@ -13,7 +13,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.nat",
-				"match": "\\b(if|while|for|return)\\b"
+				"match": "\\b(if|then|else|let|case|tycase|of)\\b"
 			}]
 		},
 		"strings": {

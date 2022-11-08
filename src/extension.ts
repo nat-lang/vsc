@@ -1,4 +1,4 @@
-import path = require('path');
+import * as path from 'path';
 import {
   workspace,
   ExtensionContext,
@@ -14,9 +14,9 @@ import {
   RevealOutputChannelOn,
   ServerOptions,
   TransportKind,
-  WorkspaceFolder
 } from 'vscode-languageclient/node';
 import { mkLogger } from './logger';
+
 
 const lang = 'nat';
 const serverExecutable = "nls";
@@ -25,21 +25,18 @@ const clients: Map<string, LanguageClient | null> = new Map();
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
-  workspace.onDidOpenTextDocument(async (document: TextDocument) => await activeServer(context, document));
-  workspace.textDocuments.forEach(async (document: TextDocument) => await activeServer(context, document));
+  const ctxServer = (document: TextDocument) => activeServer(context, document);
 
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vsc-nat" is now active!');
+  workspace.onDidOpenTextDocument(ctxServer);
+  workspace.textDocuments.forEach(ctxServer);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = commands.registerCommand('vsc-nat.helloWorld', () => {
+	let disposable = commands.registerCommand('vsc-nat.start', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		window.showInformationMessage('Hello World from foo bar!');
+		window.showInformationMessage('Nat: Ok.');
 	});
 
 	context.subscriptions.push(disposable);
@@ -50,9 +47,12 @@ async function activeServer(context: ExtensionContext, document: TextDocument) {
   const folder = workspace.getWorkspaceFolder(uri);
   const clientKey = folder ? folder.uri.toString() : uri.toString();
   const cwd = folder ? folder.uri.fsPath : path.dirname(uri.fsPath);
-  const logger = mkLogger(cwd, uri, lang);
-  const serverEnvironment: {[key:string]: string} = await workspace.getConfiguration(lang, uri).serverEnvironment;
+  const conf = await workspace.getConfiguration(lang, uri);
+  const serverEnvironment: {[key:string]: string} = conf.serverEnvironment;
   const outputChannel: OutputChannel = window.createOutputChannel(lang);
+  const logger = mkLogger(cwd, conf, outputChannel, lang);
+
+  logger.info('Starting a server for ' + document.uri);
 
   const exeOptions: ExecutableOptions = {
     cwd: folder ? undefined : path.dirname(uri.fsPath),
@@ -84,7 +84,7 @@ async function activeServer(context: ExtensionContext, document: TextDocument) {
     workspaceFolder: folder,
   };
 
-  // Create the LSP client.
+  // Create the NLS client.
   const langClient = new LanguageClient(lang, lang, serverOptions, clientOptions);
 
   // Register ClientCapabilities for stuff like window/progress
@@ -92,8 +92,6 @@ async function activeServer(context: ExtensionContext, document: TextDocument) {
 
   // Finally start the client and add it to the list of clients.
   logger.info('Starting language server');
-  window.showInformationMessage('Starting nls server.');
-
   langClient.start();
   clients.set(clientKey, langClient);
 }
