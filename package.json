@@ -10,14 +10,43 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onCommand:vsc-nat.start"
+    "onCommand:nls.start"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+		"configuration": {
+			"type": "object",
+			"title": "Nat Language Server Extension Configuration",
+			"properties": {
+				"nls.enable": {
+					"scope": "resource",
+					"type": "boolean",
+					"default": true,
+					"description": "Enabled?"
+				},
+				"nls.options": {
+					"scope": "resource",
+					"type": "object",
+					"default": {},
+					"description": "Additional options."
+				},
+				"nls.trace.server": {
+					"scope": "window",
+					"type": "string",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"default": "verbose",
+					"description": "Traces the communication between VSCode and the language server."
+				}
+			}
+		},
     "commands": [
       {
-        "command": "vsc-nat.start",
-        "title": "Nat: Start"
+        "command": "nls.start",
+        "title": "NLS: Start"
       }
     ],
     "languages": [

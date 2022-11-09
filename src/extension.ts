@@ -33,10 +33,10 @@ export function activate(context: ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = commands.registerCommand('vsc-nat.start', () => {
+	let disposable = commands.registerCommand('nls.start', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
-		window.showInformationMessage('Nat: Ok.');
+		window.showInformationMessage('NLS: Ok.');
 	});
 
 	context.subscriptions.push(disposable);
@@ -61,7 +61,12 @@ async function activeServer(context: ExtensionContext, document: TextDocument) {
 
   const serverOptions: ServerOptions = {
     run: { command: serverExecutable, transport: TransportKind.stdio, args: undefined, options: exeOptions },
-    debug: { command: serverExecutable, transport: TransportKind.stdio, args: undefined, options: exeOptions },
+    debug: {
+      command: serverExecutable,
+      transport: TransportKind.stdio,
+      args: undefined,
+      options: {...exeOptions, execArgv: ['--nolazy', '--inspect=6009'] }
+    },
   };
 
   const pat = folder ? `${folder.uri.fsPath}/**/*` : '**/*';
@@ -77,7 +82,7 @@ async function activeServer(context: ExtensionContext, document: TextDocument) {
       configurationSection: lang,
     },
     diagnosticCollectionName: lang,
-    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    revealOutputChannelOn: RevealOutputChannelOn.Info,
     outputChannel,
     outputChannelName: lang,
     // Launch the server in the directory of the workspace folder.
